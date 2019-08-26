@@ -62,29 +62,42 @@ class LaneDetector:
         return x1, y1, x2, y2
 
     def detect(self, frame):
+        # converte para cinza
         img = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
+        # extrai as dimensoes da RoI
         roiy_end = frame.shape[0]
         roix_end = frame.shape[1]
         roi = img[self.road_horizon:roiy_end, 0:roix_end]
+
+        # aplica bluer gaussiano
         blur = cv2.medianBlur(roi, 5)
+
+        # faz deteccao de contornos com Canny
         contours = cv2.Canny(blur, 60, 120)
+
 
         if self.prob_hough:
             lines = cv2.HoughLinesP(contours, 1, np.pi/180, self.vote, minLineLength=30, maxLineGap=100)
         else:
             lines = self.standard_hough(contours, self.vote)
 
+        # se alguma linha foi detectada
         if lines is not None:
-            # find nearest lines to center
-            lines = lines+np.array([0, self.road_horizon, 0, self.road_horizon]).reshape((1, 1, 4))  # scale points from ROI coordinates to full frame coordinates
+            # encontra linha mais prox do centro
+            lines = lines+np.array([0, self.road_horizon, 0, self.road_horizon]).reshape((1, 1, 4))  
+            
+            # escala pontos na RoI para a img orginal
             left_bound = None
             right_bound = None
             for l in lines:
-                # find the rightmost line of the left half of the frame and the leftmost line of the right half
+                # encontra a faixa da esquerda do frame e a da direita
                 for x1, y1, x2, y2 in l:
-                    theta = np.abs(np.arctan2((y2-y1), (x2-x1)))  # line angle WRT horizon
-                    if theta > self.roi_theta:  # ignore lines with a small angle WRT horizon
+                    # angulo da faixa com respeito a horizontal
+                    theta = np.abs(np.arctan2((y2-y1), (x2-x1))) 
+
+                    # descarta as faixas com angulo prox a horizontal
+                    if theta > self.roi_theta:  
                         dist = self._base_distance(x1, y1, x2, y2, frame.shape[1])
                         if left_bound is None and dist < 0:
                             left_bound = (x1, y1, x2, y2)

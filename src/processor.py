@@ -2,6 +2,11 @@ import cv2
 import math
 import numpy as np
 
+from collections import defaultdict
+
+from sklearn.cluster import DBSCAN
+from sklearn.preprocessing import MinMaxScaler
+
 vidsize = (640,480,3)
 
 def region_of_interest(img, vertices):
@@ -9,7 +14,7 @@ def region_of_interest(img, vertices):
     mask = np.zeros_like(img)
     
     # Retrieve the number of color channels of the image.
-    #channel_count = img.shape[2]
+    # channel_count = img.shape[2]
     
     # color used to fill polygon
     match_mask_color = 255
@@ -130,6 +135,7 @@ def hough_transform(original, gray_img, threshold, discard_horizontal = 0.4):
         for i in range(0, len(lines)):
             rho = lines[i][0][0]
             theta = lines[i][0][1]
+            
             #discard horizontal lines
             m = -math.cos(theta)/(math.sin(theta)+1e-10) #adding some small value to avoid dividing by 0
             if abs(m) < discard_horizontal:

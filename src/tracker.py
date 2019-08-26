@@ -6,6 +6,7 @@ from scipy.linalg import block_diag
 
 class LaneTracker:
     def __init__(self, n_lanes, proc_noise_scale, meas_noise_scale, process_cov_parallel=0, proc_noise_type='white'):
+        
         self.n_lanes = n_lanes
         self.meas_size = 4 * self.n_lanes
         self.state_size = self.meas_size * 2
@@ -67,6 +68,3 @@ class LaneTracker:
             return lanes
         else:
             return None
-
-if __name__ == "__main__":
-    print("OK!")
