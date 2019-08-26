@@ -79,7 +79,11 @@ while True:
         if predicted is not None:
             cv2.line(helper, (predicted[0][0], predicted[0][1]), (predicted[0][2], predicted[0][3]), (0, 255, 0), 2)
             cv2.line(helper, (predicted[1][0], predicted[1][1]), (predicted[1][2], predicted[1][3]), (0, 255, 0), 2)
-        
+            print(" Predict DeltaT: {} ".format(dt))
+
+        print("DeltaT: {} ".format(dt))
+
+
         # deixa a ipm preta
         helper[:int(helper.shape[0]*0.55),:] = 0
         
@@ -102,7 +106,7 @@ while True:
         
         final = clustering(lines, frame, np.array([region_of_interest_points], np.int32), eps = 0.5, min_samples = 4)
         
-        # mostra a deteccao e o ipm
+        # mostra a deteccao e o ipmc1
         cv2.imshow('final', frame)
         cv2.imshow('IPM', ipmout)
 

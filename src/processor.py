@@ -10,19 +10,16 @@ from sklearn.preprocessing import MinMaxScaler
 vidsize = (640,480,3)
 
 def region_of_interest(img, vertices):
-    # Define a blank matrix that matches the image height/width.
+    # define uma matriz aux
     mask = np.zeros_like(img)
-    
-    # Retrieve the number of color channels of the image.
-    # channel_count = img.shape[2]
-    
-    # color used to fill polygon
+        
+    # cor da mascara do poligono
     match_mask_color = 255
       
-    # Fill the polygon with white
+    # pinta o poligono de branco
     cv2.fillPoly(mask, vertices, (255,255,255))
     
-    # Returning the image only where mask pixels match
+    # faz o match px a px da imagem com a mascara
     masked_image = cv2.bitwise_and(img, mask)
     
     return masked_image
@@ -205,10 +202,12 @@ def clustering(lines, original, region_of_interest_points, eps = 0.05, min_sampl
     return img
 
 def IPM(image,ROI_points):
+    # monta uma img aux com a RoI
     pts_src = np.array(ROI_points,dtype=float)
     size = (700,600,3)
     ipm_out = np.zeros(size, np.uint8)
     
+    # atualiza 
     dst_points = np.array(
                        [
                         [0,0],

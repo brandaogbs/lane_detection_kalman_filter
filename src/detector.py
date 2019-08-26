@@ -70,7 +70,7 @@ class LaneDetector:
         roix_end = frame.shape[1]
         roi = img[self.road_horizon:roiy_end, 0:roix_end]
 
-        # aplica bluer gaussiano
+        # aplica blur gaussiano
         blur = cv2.medianBlur(roi, 5)
 
         # faz deteccao de contornos com Canny
