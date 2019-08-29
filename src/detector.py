@@ -55,7 +55,7 @@ class LaneDetector:
             y2 = frame_height
         else:
             m = (y2-y1)/(x2-x1)
-            x2 = ((self.road_horizon-y2)/m) + x2
+            x2 = ((self.road_horizon-y2)/m) + x2    
             y2 = self.road_horizon
             x1 = ((frame_height-y1)/m) + x1
             y1 = frame_height
@@ -64,6 +64,7 @@ class LaneDetector:
     def detect(self, frame):
         # converte para cinza
         img = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        cv2.imwrite('../out/detection_gray.png', img)
 
         # extrai as dimensoes da RoI
         roiy_end = frame.shape[0]
@@ -72,10 +73,11 @@ class LaneDetector:
 
         # aplica blur gaussiano
         blur = cv2.medianBlur(roi, 5)
+        cv2.imwrite('../out/detection_blur_rois.png', blur)
 
         # faz deteccao de contornos com Canny
         contours = cv2.Canny(blur, 60, 120)
-
+        cv2.imwrite('../out/detection_canny.png', contours)
 
         if self.prob_hough:
             lines = cv2.HoughLinesP(contours, 1, np.pi/180, self.vote, minLineLength=30, maxLineGap=100)

@@ -1,13 +1,20 @@
-# -*- coding: utf-8 -*-
-import time
-import math
+from __future__ import division
 
 import cv2
+import math
 import numpy as np
+import time
 
 from tracker import LaneTracker
-from detector import LaneDetector   
-from processor import region_of_interest, clustering, gamma_correction, gamma_correction_auto, hough_transform, hsv_filter, IPM
+from detector import LaneDetector
+from processor import   (region_of_interest,
+                        clustering,
+                        gamma_correction, 
+                        gamma_correction_auto, 
+                        hough_transform, 
+                        hsv_filter, 
+                        IPM)
+
 
 
 # leitura do vídeo
@@ -35,10 +42,7 @@ max_val_w = np.array([255, 80, 255])
 # variavel medir o tempo de cada iteracao
 ticks = 0
 
-# declara o tracker
 lt = LaneTracker(2, 0.1, 15)
-
-# declara o detector
 ld = LaneDetector(100)
 
 while True:
@@ -50,67 +54,104 @@ while True:
 
     # calcula o delta tempo (tempo atual-anterior)
     dt = (ticks - precTick) / cv2.getTickFrequency()
- 
-    # faz leitura do frame
+    
     ret, frame = cap.read()
     if ret:
+
+        cv2.imwrite('../out/original.png', frame)
+
         # aplica correção de gamma
         gamma = gamma_correction_auto(frame,equalizeHist = False) #0.2
-        
-        # extrai a RoI com correção de gamma
+        cv2.imwrite('../out/gamma.png', gamma)
+
+        # extrai a RoI com correção de gamma        
         cropped = region_of_interest(gamma, np.array([region_of_interest_points], np.int32))
+        cv2.imwrite('../out/cropped.png', cropped)
         
         # aplica filtro bilateral na RoI
         bilateral = cv2.bilateralFilter(cropped, 9, 80, 80)
+        cv2.imwrite('../out/bilateral.png', bilateral)
         
         # aplica filtro hsv com os threshold na RoI
-        hsv = hsv_filter(cropped, min_val_y, max_val_y,  min_val_w, max_val_w)
-       
+        hsv = hsv_filter(bilateral, min_val_y, max_val_y,  min_val_w, max_val_w)
+        cv2.imwrite('../out/hsv.png', hsv)
+        
         # faz o predicao da primeira iteracao
         predicted = lt.predict(dt)
 
         # faz a deteccao das faixas
-        lanes = ld.detect(cropped)
-                
+        lanes = ld.detect(bilateral)
+        print(">> Detected:\nL: {}\nR: {}\n".format(lanes[0], lanes[1]))
+
         # img auxiliar para ipm        
         helper = np.zeros_like(frame)
-        
+
         # caso seja o primeiro frame
         if predicted is not None:
+            print(">> Predicted\nL: {}{}\nR: {}{}\n".format(
+            (float(predicted[0][0]), float(predicted[0][1])),
+            (float(predicted[0][2]), float(predicted[0][3])),
+            (float(predicted[1][0]), float(predicted[1][1])),
+            (float(predicted[1][2]), float(predicted[1][3]))))
+
+            # print("Kalman pipeline: {}".format(dt))
+            
             cv2.line(helper, (predicted[0][0], predicted[0][1]), (predicted[0][2], predicted[0][3]), (0, 255, 0), 2)
             cv2.line(helper, (predicted[1][0], predicted[1][1]), (predicted[1][2], predicted[1][3]), (0, 255, 0), 2)
-            print(" Predict DeltaT: {} ".format(dt))
+            
+            # deixa a ipm preta
+            helper[:int(helper.shape[0]*0.55),:] = 0
+            
+            # junta o fundo preto com o frame
+            frame = cv2.add(helper,frame)
 
-        print("DeltaT: {} ".format(dt))
+            # monta a ipm
+            ipmout = IPM(helper,region_of_interest_points)
+            
+            # faz update do kalman
+            lt.update(lanes)
+            
+            # mostra a deteccao e o ipmc1
+            cv2.imshow('final', frame)
+            cv2.imshow('IPM', ipmout)
+            cv2.imwrite('../out/final.png', frame)
 
+        else:
+            print(">> Predicted\nL: {}{}\nR: {}{}\n".format(
+            None,
+            None,
+            None,
+            None))
 
-        # deixa a ipm preta
-        helper[:int(helper.shape[0]*0.55),:] = 0
-        
-        # junta o fundo preto com o frame
-        frame = cv2.add(helper,frame)
-        
-        # monta a ipm
-        ipmout = IPM(helper,region_of_interest_points)
-        
-        # faz update do kalman
-        lt.update(lanes)
-        
-        # aplica canny na HSV
-        canny = cv2.Canny(hsv, 80, 255) #100
-        
-        # aplica transformada de hough linear
-        hough, lines = hough_transform(frame, canny, 11, discard_horizontal = 0.7) #14 0.4
-        
-        _, frame = cap.read()
-        
-        final = clustering(lines, frame, np.array([region_of_interest_points], np.int32), eps = 0.5, min_samples = 4)
-        
-        # mostra a deteccao e o ipmc1
-        cv2.imshow('final', frame)
-        cv2.imshow('IPM', ipmout)
+            # print("Full pipeline: {}".format(dt))
 
-        # escape 'q'        
+            # deixa a ipm preta
+            helper[:int(helper.shape[0]*0.55),:] = 0
+            
+            # junta o fundo preto com o frame
+            frame = cv2.add(helper,frame)
+
+            # monta a ipm
+            ipmout = IPM(helper,region_of_interest_points)
+            
+            # faz update do kalman
+            lt.update(lanes)
+            
+            # aplica canny na HSV
+            canny = cv2.Canny(hsv, 80, 255) #100
+            # cv2.imwrite('../out/canny.png', canny)
+            
+            # aplica transformada de hough linear
+            hough, lines = hough_transform(frame, canny, 11, discard_horizontal = 0.7) #14 0.4
+            # cv2.imwrite('hough.png', lines)
+                        
+            final = clustering(lines, frame, np.array([region_of_interest_points], np.int32), eps = 0.5, min_samples = 4)
+ 
+            # mostra a deteccao e o ipmc1
+            cv2.imshow('final', frame)
+            cv2.imshow('IPM', ipmout)
+            #out.write(frame)
+
         k = cv2.waitKey(1) & 0xFF
         if k == ord('q'):
             break
