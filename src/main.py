@@ -15,6 +15,7 @@ from processor import   (region_of_interest,
                         hsv_filter, 
                         IPM)
 
+from log import *
 
 
 # leitura do vídeo
@@ -81,18 +82,14 @@ while True:
 
         # faz a deteccao das faixas
         lanes = ld.detect(bilateral)
-        print(">> Detected:\nL: {}\nR: {}\n".format(lanes[0], lanes[1]))
+        logDet = "Detected:\nL: {}\nR: {}\n".format(lanes[0], lanes[1])
 
         # img auxiliar para ipm        
         helper = np.zeros_like(frame)
 
         # caso seja o primeiro frame
         if predicted is not None:
-            print(">> Predicted\nL: {}{}\nR: {}{}\n".format(
-            (float(predicted[0][0]), float(predicted[0][1])),
-            (float(predicted[0][2]), float(predicted[0][3])),
-            (float(predicted[1][0]), float(predicted[1][1])),
-            (float(predicted[1][2]), float(predicted[1][3]))))
+            logPre = "Predicted\nL: {}{}\nR: {}{}\n".format((float(predicted[0][0]), float(predicted[0][1])), (float(predicted[0][2]), float(predicted[0][3])), (float(predicted[1][0]), float(predicted[1][1])), (float(predicted[1][2]), float(predicted[1][3])))
 
             # print("Kalman pipeline: {}".format(dt))
             
@@ -117,11 +114,8 @@ while True:
             cv2.imwrite('../out/final.png', frame)
 
         else:
-            print(">> Predicted\nL: {}{}\nR: {}{}\n".format(
-            None,
-            None,
-            None,
-            None))
+            logPre ="Predicted\nL {}{}\nR: {}{}\n".format(None,None,None,None)
+
 
             # print("Full pipeline: {}".format(dt))
 
@@ -151,6 +145,11 @@ while True:
             cv2.imshow('final', frame)
             cv2.imshow('IPM', ipmout)
             #out.write(frame)
+
+        logger.debug(logPre)
+        logger.debug(logDet)
+
+
 
         k = cv2.waitKey(1) & 0xFF
         if k == ord('q'):
