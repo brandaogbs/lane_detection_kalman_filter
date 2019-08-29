@@ -82,15 +82,20 @@ while True:
 
         # faz a deteccao das faixas
         lanes = ld.detect(bilateral)
-        logDet = "Detected:\nL: {}\nR: {}\n".format(lanes[0], lanes[1])
+        
+        # logDet = "Detected:\nL: {}\nR: {}\n".format(lanes[0], lanes[1])
+        if lanes[0] == None:
+            logDet = 'D,None,None,None,None'        
+        else:
+            logDet = "D,"+str(lanes[0]).replace('(', '')
+            logDet = logDet.replace(')', '')
 
         # img auxiliar para ipm        
         helper = np.zeros_like(frame)
 
         # caso seja o primeiro frame
         if predicted is not None:
-            logPre = "Predicted\nL: {}{}\nR: {}{}\n".format((float(predicted[0][0]), float(predicted[0][1])), (float(predicted[0][2]), float(predicted[0][3])), (float(predicted[1][0]), float(predicted[1][1])), (float(predicted[1][2]), float(predicted[1][3])))
-
+            logPre = "P,{},{},{},{}".format(float(predicted[0][0]), float(predicted[0][1]), float(predicted[0][2]), float(predicted[0][3]))
             # print("Kalman pipeline: {}".format(dt))
             
             cv2.line(helper, (predicted[0][0], predicted[0][1]), (predicted[0][2], predicted[0][3]), (0, 255, 0), 2)
@@ -114,7 +119,7 @@ while True:
             cv2.imwrite('../out/final.png', frame)
 
         else:
-            logPre ="Predicted\nL {}{}\nR: {}{}\n".format(None,None,None,None)
+            logPre ="P,None,None,None,None"
 
 
             # print("Full pipeline: {}".format(dt))
@@ -154,6 +159,7 @@ while True:
         k = cv2.waitKey(1) & 0xFF
         if k == ord('q'):
             break
+
 
 cap.release()
 cv2.destroyAllWindows()
