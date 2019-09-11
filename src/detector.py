@@ -73,7 +73,7 @@ class LaneDetector:
 
         # aplica blur gaussiano
         blur = cv2.medianBlur(roi, 5)
-        cv2.imwrite('../out/detection_blur_rois.png', blur)
+        cv2.imwrite('../out/detection_blur_roi.png', blur)
 
         # faz deteccao de contornos com Canny
         contours = cv2.Canny(blur, 60, 120)
@@ -86,9 +86,10 @@ class LaneDetector:
 
         # se alguma linha foi detectada
         if lines is not None:
+           
             # encontra linha mais prox do centro
             lines = lines+np.array([0, self.road_horizon, 0, self.road_horizon]).reshape((1, 1, 4))  
-            
+
             # escala pontos na RoI para a img orginal
             left_bound = None
             right_bound = None

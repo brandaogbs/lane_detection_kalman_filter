@@ -96,7 +96,6 @@ while True:
         # caso seja o primeiro frame
         if predicted is not None:
             logPre = "P,{},{},{},{}".format(float(predicted[0][0]), float(predicted[0][1]), float(predicted[0][2]), float(predicted[0][3]))
-            # print("Kalman pipeline: {}".format(dt))
             
             cv2.line(helper, (predicted[0][0], predicted[0][1]), (predicted[0][2], predicted[0][3]), (0, 255, 0), 2)
             cv2.line(helper, (predicted[1][0], predicted[1][1]), (predicted[1][2], predicted[1][3]), (0, 255, 0), 2)
@@ -116,13 +115,9 @@ while True:
             # mostra a deteccao e o ipmc1
             cv2.imshow('final', frame)
             cv2.imshow('IPM', ipmout)
-            cv2.imwrite('../out/final.png', frame)
 
         else:
             logPre ="P,None,None,None,None"
-
-
-            # print("Full pipeline: {}".format(dt))
 
             # deixa a ipm preta
             helper[:int(helper.shape[0]*0.55),:] = 0
@@ -149,12 +144,9 @@ while True:
             # mostra a deteccao e o ipmc1
             cv2.imshow('final', frame)
             cv2.imshow('IPM', ipmout)
-            #out.write(frame)
 
-        logger.debug(logPre)
-        logger.debug(logDet)
-
-
+        # logger.debug(logPre)
+        # logger.debug(logDet)
 
         k = cv2.waitKey(1) & 0xFF
         if k == ord('q'):
